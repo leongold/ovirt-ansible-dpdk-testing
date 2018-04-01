@@ -121,7 +121,9 @@ def _add_isolated_cpus(cpu_list):
 
 def _current_hugepages():
     kernel_args = _get_kernel_args()
-    return 'hugepages' in kernel_args and 'hugepagesz' in kernel_args
+    return all(['hugepages' in kernel_args,
+                'hugepagesz' in kernel_args,
+                'default_hugepagesz' in kernel_args])
 
 
 def _get_kernel_args():
