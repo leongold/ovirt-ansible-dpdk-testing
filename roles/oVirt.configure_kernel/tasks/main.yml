@@ -1,0 +1,14 @@
+- name: install packages
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+  - pciutils
+  - dpdk
+  - dpdk-tools
+  - driverctl
+  - tuned-profiles-cpu-partitioning
+
+- name: configure kernel
+  configure_kernel:
+    pci_addresses: "{{ pci_addresses }}"

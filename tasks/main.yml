@@ -1,0 +1,3 @@
+- name: configure kernel
+  include_role:
+    name: "oVirt.dpdk-setup/roles/oVirt.configure_kernel
