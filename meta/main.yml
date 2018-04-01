@@ -1,6 +1,6 @@
 galaxy_info:
-  author: Irit Goihman
-  description: Role to set up OpenVswitch with DPDK support.
+  author: Leon Goldberg
+  description: ovirt-ansible-dpdk-setup testing
   company: Red Hat, Inc.
 
   license: Apache License 2.0
