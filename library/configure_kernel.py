@@ -35,10 +35,6 @@ class SelectCpuPartitioningError(Exception):
     pass
 
 
-class BindDeviceToDPDKError(Exception):
-    pass
-
-
 def _get_cpu_list(pci_addresses):
     cores = []
     for addr in pci_addresses:
@@ -166,16 +162,6 @@ def _is_iommu_set():
     return 'iommu=pt' in kernel_args and 'intel_iommu=on' in kernel_args
 
 
-def _bind_devices_to_dpdk(pci_addresses):
-    for addr in pci_addresses:
-        proc = subprocess.Popen(['driverctl', '-v', 'set-override', addr,
-                                 DPDK_DRIVER])
-        _, err = proc.communicate()
-        rc = proc.returncode
-        if rc != 0:
-            raise BindDeviceToDPDKError(err)
-
-
 def _configure_kernel(pci_addresses):
     changed = False
     if not pci_addresses:
@@ -191,9 +177,8 @@ def _configure_kernel(pci_addresses):
     added_iommu = _add_iommu(default_kernel)
 
     if any([added_hugepages, added_isolated_cpus, added_iommu]):
-        changed = True 
+        changed = True
 
-    _bind_devices_to_dpdk(pci_addresses)
     return changed
 
 
