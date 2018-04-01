@@ -12,3 +12,20 @@
 - name: configure kernel
   configure_kernel:
     pci_addresses: "{{ pci_addresses }}"
+  register: configure_kernel
+
+- name: restart server
+  shell: sleep 1 && shutdown -r now "Ansible updates triggered"
+  async: 1
+  poll: 0
+  become: true
+  ignore_errors: true
+  when: configure_kernel.changed
+
+- name: Wait for host to come back
+  wait_for_connection:
+    timeout: 600
+
+- name: bind devices to dpdk
+  command: "driverctl -v set-override {{ item }} {{ kernel_module }}"
+  with_items: "{{ pci_addresses }}"

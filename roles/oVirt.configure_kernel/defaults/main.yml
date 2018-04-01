@@ -1,1 +1,2 @@
 pci_addresses: ['0000:00:04.0']
+kernel_module: 'vfio-pci'
