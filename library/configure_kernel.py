@@ -27,6 +27,10 @@ from ansible.module_utils.basic import AnsibleModule
 DPDK_DRIVER = 'vfio-pci'
 
 
+class ReadKernelArgsError(Exception):
+    pass
+
+
 class UpdateKernelError(Exception):
     pass
 
@@ -121,14 +125,27 @@ def _add_isolated_cpus(cpu_list):
 
 def _current_hugepages():
     kernel_args = _get_kernel_args()
-    return all(['hugepages' in kernel_args,
-                'hugepagesz' in kernel_args,
-                'default_hugepagesz' in kernel_args])
+    args_list = kernel_args.split()
+
+    return all([
+        any([arg.startswith('hugepages=') for arg in args_list]),
+        any([arg.startswith('hugepagesz=') for arg in args_list]),
+        any([arg.startswith('default_hugepagesz=') for arg in args_list])
+    ])
 
 
 def _get_kernel_args():
-    with open('/proc/cmdline') as f:
-        return f.read().strip()
+    proc = subprocess.Popen(['grubby', '--info', _get_default_kernel()],
+                            stdout=subprocess.PIPE)
+
+    out, err = proc.communicate()
+    if err:
+        raise ReadKernelError(out)
+
+    return [l.split('=', 1)[1].strip('"')
+             for l in out.split('\n') if
+             l.startswith('args')][0]
+
 
 
 def _are_1g_hugepages_supported():
