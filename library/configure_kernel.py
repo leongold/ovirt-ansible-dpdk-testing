@@ -24,9 +24,6 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 
-DPDK_DRIVER = 'vfio-pci'
-
-
 class ReadKernelArgsError(Exception):
     pass
 
@@ -181,6 +178,38 @@ def _is_iommu_set():
     return 'iommu=pt' in kernel_args and 'intel_iommu=on' in kernel_args
 
 
+def _using_virtio(addr):
+    out = subprocess.check_output(['lspci'])
+
+    devices = out.split('\n')
+    for device in devices:
+        short_addr, info = device.split(' ', 1)
+        if addr.split(':', 1)[1] == short_addr:
+            if 'Virtio' in info:
+                return True
+            return False
+
+    raise Exception('Could not determine device type @ {}'.format(addr))
+
+
+def _enable_unsafe_noiommu_mode():
+    _remove_vfio()
+
+    proc = subprocess.Popen(
+        ['modprobe', 'vfio', 'enable_unsafe_noiommu_mode=1']
+    )
+    _, err = proc.communicate()
+    if err:
+        raise Exception('Could not set unsafe noiommu mode: {}'.format(err))
+
+
+def _remove_vfio():
+    proc = subprocess.Popen(['modprobe', '-r', 'vfio_pci', 'vfio'])
+    _, err = proc.communicate()
+    if err:
+        raise Exception('Could not remove vfio module: {}'.format(err))
+
+
 def _configure_kernel(pci_addresses):
     changed = False
     if not pci_addresses:
@@ -195,10 +224,15 @@ def _configure_kernel(pci_addresses):
         _select_cpu_partitioning()
     added_iommu = _add_iommu(default_kernel)
 
+    for addr in pci_addresses:
+        if _using_virtio(addr):
+            _enable_unsafe_noiommu_mode()
+            break
+
     if any([added_hugepages, added_isolated_cpus, added_iommu]):
         changed = True
 
-    return changed
+    return changed, cpu_list
 
 
 def main():
@@ -210,11 +244,11 @@ def main():
 
     pci_addresses = module.params.get('pci_addresses')
     try:
-        changed = _configure_kernel(pci_addresses)
+        changed, cpu_list = _configure_kernel(pci_addresses)
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
-    module.exit_json(changed=changed)
+    module.exit_json(cpu_list=cpu_list, changed=changed)
 
 
 if __name__ == "__main__":

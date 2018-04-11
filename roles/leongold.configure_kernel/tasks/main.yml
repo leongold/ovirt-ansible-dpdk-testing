@@ -14,6 +14,9 @@
     pci_addresses: "{{ pci_addresses }}"
   register: configure_kernel
 
+- set_fact:
+    cpu_list: "{{ configure_kernel.cpu_list }}"
+
 - name: restart server
   shell: sleep 2 && shutdown -r now "Ansible updates triggered"
   async: 1
@@ -29,7 +32,3 @@
 - name: Wait for host to come back
   wait_for_connection:
     timeout: 600
-
-- name: bind devices to dpdk
-  command: "driverctl -v set-override {{ item }} {{ kernel_module }}"
-  with_items: "{{ pci_addresses }}"
