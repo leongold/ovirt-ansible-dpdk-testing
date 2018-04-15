@@ -4,7 +4,7 @@
     state: started
 
 - name: set dpdk-socket-mem
-  command: "ovs-vsctl --no-wait set open_vswitch . other_config:dpdk-socket-mem=\"1024,\""
+  command: "ovs-vsctl --no-wait set open_vswitch . other_config:dpdk-socket-mem=1024,"
 
 - name: set dpdk-init
   openvswitch_db:
