@@ -9,6 +9,7 @@
     record: .
     col: other_config
     key: dpdk-init
+    timeout: 60
     value: true
 
 - name: gather dpdk facts
@@ -24,6 +25,7 @@
     record: .
     col: other_config
     key: pmd-cpu-mask
+    timeout: 60
     value: "{{ dpdk_facts.pmd_cpu_mask }}"
 
 - name: set dpdk lcore mask
@@ -32,6 +34,7 @@
     record: .
     col: other_config
     key: dpdk-lcore-mask
+    timeout: 60
     value: "{{ dpdk_facts.dpdk_lcore_mask }}"
 
 - name: set dpdk-socket-mem
