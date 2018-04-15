@@ -8,6 +8,7 @@
   - dpdk-tools
   - driverctl
   - tuned-profiles-cpu-partitioning
+  - openvswitch
 
 - name: configure kernel
   configure_kernel:
