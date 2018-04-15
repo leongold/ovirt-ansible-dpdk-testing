@@ -6,11 +6,5 @@
 - name: set dpdk-socket-mem
   command: "ovs-vsctl --no-wait set open_vswitch . other_config:dpdk-socket-mem=1024,"
 
-- name: set dpdk-init
-  openvswitch_db:
-    table: open_vswitch
-    record: .
-    col: other_config
-    key: dpdk-init
-    timeout: 60
-    value: true
+- name: start dpdk
+  command: "ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true"
