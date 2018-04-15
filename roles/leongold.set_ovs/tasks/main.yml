@@ -3,6 +3,16 @@
     name: openvswitch
     state: started
 
+- name: gather dpdk facts
+  dpdk_facts:
+    nr_queues: "{{ nr_queues }}"
+    pci_addresses: "{{ pci_addresses }}"
+    cpu_list: "{{ cpu_list }}"
+  register: dpdk_facts
+
+- name: set dpdk-socket-mem
+  command: "ovs-vsctl --no-wait set open_vswitch . other_config:dpdk-socket-mem=\"{{ dpdk_facts.dpdk_socket_mem }}\""
+
 - name: set dpdk-init
   openvswitch_db:
     table: open_vswitch
@@ -11,13 +21,6 @@
     key: dpdk-init
     timeout: 60
     value: true
-
-- name: gather dpdk facts
-  dpdk_facts:
-    nr_queues: "{{ nr_queues }}"
-    pci_addresses: "{{ pci_addresses }}"
-    cpu_list: "{{ cpu_list }}"
-  register: dpdk_facts
 
 - name: set pmd-cpu-mask
   openvswitch_db:
@@ -36,9 +39,6 @@
     key: dpdk-lcore-mask
     timeout: 60
     value: "{{ dpdk_facts.dpdk_lcore_mask }}"
-
-- name: set dpdk-socket-mem
-  command: "ovs-vsctl --no-wait set open_vswitch . other_config:dpdk-socket-mem=\"{{ dpdk_facts.dpdk_socket_mem }}\""
 
 - name: restart openvswitch service
   service:
