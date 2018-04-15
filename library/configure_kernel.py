@@ -86,11 +86,11 @@ def _add_hugepages(kernel):
         return
 
     _1g_hugepages_are_supported = _are_1g_hugepages_supported()
-    if _1g_hugepages_are_supported:
-        args = 'default_hugepagesz=1G hugepagesz=1G hugepages=16'
-    else:
-        args = 'default_hugepagesz=2M hugepagesz=2M hugepages=4'
-
+    # if _1g_hugepages_are_supported:
+    #     args = 'default_hugepagesz=1G hugepagesz=1G hugepages=16'
+    # else:
+    #     args = 'default_hugepagesz=2M hugepagesz=2M hugepages=4'
+    args = 'default_hugepagesz=2M hugepagesz=2M hugepages=16'
     proc = subprocess.Popen(['grubby', '--args="{}"'.format(args),
                              '--update-kernel', kernel])
     out, err = proc.communicate()
