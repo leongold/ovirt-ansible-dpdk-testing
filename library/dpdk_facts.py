@@ -128,7 +128,8 @@ def get_socket_mem(nics_numa_info):
         else:
             socket_mem_list.append('1024')
 
-    return ','.join(socket_mem_list)
+    # return ','.join(socket_mem_list)
+    return '1024,'
 
 
 def get_dpdk_nics_numa_info(pci_addresses):
