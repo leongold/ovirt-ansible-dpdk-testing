@@ -38,6 +38,6 @@
   command: /usr/bin/chmod a+x /dev/vfio
 
 - name: set vfio permissions 2
-  command: /usr/bin/chmod 0666 /dev/vfio/*
+  shell: /usr/bin/chmod 0666 /dev/vfio/*
 
 
