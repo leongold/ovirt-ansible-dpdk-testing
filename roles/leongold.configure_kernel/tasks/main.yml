@@ -33,13 +33,3 @@
 - name: Wait for host to come back
   wait_for_connection:
     timeout: 600
-
-- name: set vfio permissions 1
-  command: /usr/bin/chmod 777 /dev/vfio
-
-- name: set vfio permissions 2
-  shell: /usr/bin/chmod 777 /dev/vfio/*
-  args:
-    executable: /bin/bash
-
-
