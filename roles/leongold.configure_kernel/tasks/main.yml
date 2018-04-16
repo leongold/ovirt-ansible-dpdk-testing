@@ -39,5 +39,7 @@
 
 - name: set vfio permissions 2
   shell: /usr/bin/chmod 0666 /dev/vfio/*
+  args:
+    executable: /bin/bash
 
 
