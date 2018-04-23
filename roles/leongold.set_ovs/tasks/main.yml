@@ -8,11 +8,3 @@
 
 - name: start dpdk
   command: "ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true"
-
-- name: set vfio permissions 1
-  command: /usr/bin/chmod 777 /dev/vfio
-
-- name: set vfio permissions 2
-  shell: /usr/bin/chmod 777 /dev/vfio/*
-  args:
-    executable: /bin/bash
