@@ -35,6 +35,14 @@ class SelectCpuPartitioningError(Exception):
     pass
 
 
+def _exec_cmd(args):
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    out, err = proc.communicate()
+    return proc.returncode, out, err
+
+
 def _get_cpu_list(pci_addresses):
     cores = []
     for addr in pci_addresses:
@@ -126,12 +134,9 @@ def _current_hugepages():
 
 
 def _get_kernel_args():
-    proc = subprocess.Popen(['grubby', '--info', _get_default_kernel()],
-                            stdout=subprocess.PIPE)
-
-    out, err = proc.communicate()
-    if err:
-        raise ReadKernelArgsError(out)
+    rc, out, err = _exec_cmd(['grubby', '--info', _get_default_kernel()])
+    if rc != 0:
+        raise ReadKernelArgsError(err)
 
     return [l.split('=', 1)[1].strip('"')
             for l in out.split('\n') if
@@ -139,10 +144,7 @@ def _get_kernel_args():
 
 
 def _select_cpu_partitioning():
-    proc = subprocess.Popen(['tuned-adm', 'profile', 'cpu-partitioning'])
-
-    _, err = proc.communicate()
-    rc = proc.returncode
+    rc, _, err = _exec_cmd(['tuned-adm', 'profile', 'cpu-partitioning'])
     if rc != 0:
         raise SelectCpuPartitioningError(err)
 
@@ -151,11 +153,8 @@ def _add_iommu(kernel):
     if _is_iommu_set():
         return False
 
-    proc = subprocess.Popen(['grubby', '--args=iommu=pt intel_iommu=on',
+    rc, _, err = _exec_cmd(['grubby', '--args=iommu=pt intel_iommu=on',
                              '--update-kernel={}'.format(kernel)])
-
-    _, err = proc.communicate()
-    rc = proc.returncode
     if rc != 0:
         raise UpdateKernelError(err)
     return True
@@ -181,21 +180,33 @@ def _using_virtio(addr):
 
 
 def _enable_unsafe_noiommu_mode():
+    _remove_vfio_pci()
     _remove_vfio()
 
-    proc = subprocess.Popen(
+    rc, _, err = _exec_cmd(
         ['modprobe', 'vfio', 'enable_unsafe_noiommu_mode=1']
     )
-    _, err = proc.communicate()
-    if err:
+    if rc != 0:
         raise Exception('Could not set unsafe noiommu mode: {}'.format(err))
 
 
+def _remove_vfio_pci():
+    _remove_module('vfio_pci')
+
+
 def _remove_vfio():
-    proc = subprocess.Popen(['modprobe', '-r', 'vfio_pci', 'vfio'])
-    _, err = proc.communicate()
-    if err:
-        raise Exception('Could not remove vfio module: {}'.format(err))
+    _remove_module('vfio')
+
+
+def _remove_module(module):
+    rc, _, err = _exec_cmd(['modprobe', '-r', module])
+    if rc:
+        if 'No such file' in err:
+            return
+        else:
+            raise Exception(
+                'Could not remove {} module: {}'.format(module, err)
+            )
 
 
 def _configure_kernel(pci_addresses):
@@ -220,7 +231,7 @@ def _configure_kernel(pci_addresses):
     if any([added_hugepages, added_isolated_cpus, added_iommu]):
         changed = True
 
-    return changed, cpu_list
+    return changed
 
 
 def main():
@@ -236,7 +247,7 @@ def main():
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
-    module.exit_json(cpu_list=cpu_list, changed=changed)
+    module.exit_json(changed=changed)
 
 
 if __name__ == "__main__":
