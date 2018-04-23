@@ -179,36 +179,6 @@ def _using_virtio(addr):
     raise Exception('Could not determine device type @ {}'.format(addr))
 
 
-def _enable_unsafe_noiommu_mode():
-    _remove_vfio_pci()
-    _remove_vfio()
-
-    rc, _, err = _exec_cmd(
-        ['modprobe', 'vfio', 'enable_unsafe_noiommu_mode=1']
-    )
-    if rc != 0:
-        raise Exception('Could not set unsafe noiommu mode: {}'.format(err))
-
-
-def _remove_vfio_pci():
-    _remove_module('vfio_pci')
-
-
-def _remove_vfio():
-    _remove_module('vfio')
-
-
-def _remove_module(module):
-    rc, _, err = _exec_cmd(['modprobe', '-r', module])
-    if rc:
-        if 'No such file' in err:
-            return
-        else:
-            raise Exception(
-                'Could not remove {} module: {}'.format(module, err)
-            )
-
-
 def _configure_kernel(pci_addresses):
     changed = False
     if not pci_addresses:
@@ -222,11 +192,6 @@ def _configure_kernel(pci_addresses):
     if added_isolated_cpus:
         _select_cpu_partitioning()
     added_iommu = _add_iommu(default_kernel)
-
-    for addr in pci_addresses:
-        if _using_virtio(addr):
-            _enable_unsafe_noiommu_mode()
-            break
 
     if any([added_hugepages, added_isolated_cpus, added_iommu]):
         changed = True
