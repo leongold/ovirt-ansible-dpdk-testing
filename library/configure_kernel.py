@@ -18,7 +18,6 @@
 #
 import os
 import subprocess
-import sys
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule
@@ -85,11 +84,6 @@ def _add_hugepages(kernel):
     if _current_hugepages():
         return
 
-    _1g_hugepages_are_supported = _are_1g_hugepages_supported()
-    # if _1g_hugepages_are_supported:
-    #     args = 'default_hugepagesz=1G hugepagesz=1G hugepages=16'
-    # else:
-    #     args = 'default_hugepagesz=2M hugepagesz=2M hugepages=4'
     args = 'default_hugepagesz=2M hugepagesz=2M hugepages=512'
     proc = subprocess.Popen(['grubby', '--args="{}"'.format(args),
                              '--update-kernel', kernel])
@@ -137,17 +131,11 @@ def _get_kernel_args():
 
     out, err = proc.communicate()
     if err:
-        raise ReadKernelError(out)
+        raise ReadKernelArgsError(out)
 
     return [l.split('=', 1)[1].strip('"')
-             for l in out.split('\n') if
-             l.startswith('args')][0]
-
-
-
-def _are_1g_hugepages_supported():
-    with open('/proc/cpuinfo') as f:
-        return 'pdpe1gb' in f.read()
+            for l in out.split('\n') if
+            l.startswith('args')][0]
 
 
 def _select_cpu_partitioning():
@@ -165,7 +153,7 @@ def _add_iommu(kernel):
 
     proc = subprocess.Popen(['grubby', '--args=iommu=pt intel_iommu=on',
                              '--update-kernel={}'.format(kernel)])
-    
+
     _, err = proc.communicate()
     rc = proc.returncode
     if rc != 0:

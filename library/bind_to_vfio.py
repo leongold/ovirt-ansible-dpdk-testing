@@ -23,7 +23,9 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 def _exec_cmd(args):
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     out, err = proc.communicate()
     return proc.returncode, out, err
 
@@ -46,27 +48,30 @@ def _enable_unsafe_noiommu_mode():
     _remove_vfio_pci()
     _remove_vfio()
 
-    rc, _, err = _exec_cmd(['modprobe', 'vfio', 'enable_unsafe_noiommu_mode=1'])
+    rc, _, err = _exec_cmd(
+        ['modprobe', 'vfio', 'enable_unsafe_noiommu_mode=1']
+    )
     if rc:
         raise Exception('Could not set unsafe noiommu mode: {}'.format(err))
 
 
 def _remove_vfio_pci():
-    rc, _, err = _exec_cmd(['modprobe', '-r', 'vfio_pci'])
-    if rc:
-        if 'No such file' in err:
-            return
-        else:
-            raise Exception('Could not remove vfio_pci module: {}'.format(err))
+    _remove_module('vfio_pci')
 
 
 def _remove_vfio():
-    rc, _, err = _exec_cmd(['modprobe', '-r', 'vfio'])
+    _remove_module('vfio')
+
+
+def _remove_module(module):
+    rc, _, err = _exec_cmd(['modprobe', '-r', module])
     if rc:
         if 'No such file' in err:
             return
         else:
-            raise Exception('Could not remove vfio module: {}'.format(err))
+            raise Exception(
+                'Could not remove {} module: {}'.format(module, err)
+            )
 
 
 def _bind_devices_to_vfio(pci_addresses):
@@ -76,7 +81,9 @@ def _bind_devices_to_vfio(pci_addresses):
     for addr in pci_addresses:
         rc, _, err = _exec_cmd(['driverctl', 'set-override', addr, 'vfio-pci'])
         if rc:
-            raise Exception('Could not bind device to vfio-pci: {}'.format(err))
+            raise Exception(
+                'Could not bind device to vfio-pci: {}'.format(err)
+            )
 
 
 def main():
