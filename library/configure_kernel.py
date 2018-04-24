@@ -208,7 +208,7 @@ def main():
 
     pci_addresses = module.params.get('pci_addresses')
     try:
-        changed, cpu_list = _configure_kernel(pci_addresses)
+        cpu_list = _configure_kernel(pci_addresses)
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
