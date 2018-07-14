@@ -30,6 +30,14 @@ def _exec_cmd(args):
     return proc.returncode, out, err
 
 
+def _fetch_present_driver(pci_address):
+    out = subprocess.check_output(['lspci', '-v', '-s', pci_address])
+    lines = out.strip().split('\n')
+    for line in lines:
+        if 'Kernel driver' in line:
+            return line.split(':')[1].strip()
+
+
 def _using_virtio(addr):
     out = subprocess.check_output(['lspci'])
 
@@ -98,14 +106,21 @@ def main():
     )
     device_map = module.params.get('device_map')
     bind_function_map = {'vfio-pci': _bind_device_to_vfio}
+    changed = False
     try:
         for pci_address, driver in device_map.viewitems():
-            bind_func = bind_function_map.get(driver, _bind_device_to_driver)
-            bind_func(pci_address, driver)
+            present_driver = _fetch_present_driver(pci_address)
+            if present_driver != driver:
+                bind_func = bind_function_map.get(
+                    driver, _bind_device_to_driver
+                )
+                bind_func(pci_address, driver)
+                changed = True
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
     module.exit_json(
+        changed=changed,
         start_ovs=any(driver in DPDK_DRIVERS
                       for driver in device_map.viewvalues())
     )

@@ -101,7 +101,7 @@ def _add_hugepages(kernel):
     return True
 
 
-def _add_isolated_cpus(cpu_list):
+def _change_isolated_cpus(cpu_list):
     VARIABLES_FILE = '/etc/tuned/cpu-partitioning-variables.conf'
 
     changed = False
@@ -180,23 +180,15 @@ def _using_virtio(addr):
 
 
 def _configure_kernel(pci_addresses):
-    changed = False
-    if not pci_addresses:
-        raise Exception('no pci address specified')
-
     cpu_list = _get_cpu_list(pci_addresses)
     default_kernel = _get_default_kernel()
 
     added_hugepages = _add_hugepages(default_kernel)
-    added_isolated_cpus = _add_isolated_cpus(cpu_list)
-    if added_isolated_cpus:
-        _select_cpu_partitioning()
+    changed_isolated_cpus = _change_isolated_cpus(cpu_list)
+    _select_cpu_partitioning()
     added_iommu = _add_iommu(default_kernel)
 
-    if any([added_hugepages, added_isolated_cpus, added_iommu]):
-        changed = True
-
-    return changed
+    return any([added_hugepages, changed_isolated_cpus, added_iommu]):
 
 
 def main():
