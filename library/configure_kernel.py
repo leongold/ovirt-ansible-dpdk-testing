@@ -144,7 +144,7 @@ def _get_kernel_args():
 
 
 def _select_cpu_partitioning(cpu_list):
-    profile = 'cpu-partitioning' if cpu_list else 'default'
+    profile = 'cpu-partitioning' if cpu_list else 'balanced'
     rc, _, err = _exec_cmd(['tuned-adm', 'profile', profile])
     if rc != 0:
         raise SelectCpuPartitioningError(err)
