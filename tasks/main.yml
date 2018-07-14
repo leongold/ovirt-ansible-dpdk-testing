@@ -2,9 +2,9 @@
   include_role:
     name: "leongold.ovirt-ansible-dpdk-testing/roles/leongold.configure_kernel"
 
-- name: bind devices to vfio
+- name: bind devices to drivers
   include_role:
-    name: "leongold.ovirt-ansible-dpdk-testing/roles/leongold.bind_to_vfio"
+    name: "leongold.ovirt-ansible-dpdk-testing/roles/leongold.bind_drivers"
 
 - name: set ovs
   include_role:

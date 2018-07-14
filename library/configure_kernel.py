@@ -200,13 +200,16 @@ def _configure_kernel(pci_addresses):
 
 
 def main():
+    DPDK_DRIVERS = ('vfio-pci',)
+
     module = AnsibleModule(
         argument_spec=dict(
-            pci_addresses=dict(default=None, type='list', required=True)
+            device_map=dict(default=None, type='dict', required=True)
         )
     )
-
-    pci_addresses = module.params.get('pci_addresses')
+    device_map = module.params.get('device_map')
+    pci_addresses = [addr for addr, driver in device_map.iteritems()
+                     if driver in DPDK_DRIVERS]
     try:
         changed = _configure_kernel(pci_addresses)
     except Exception as e:

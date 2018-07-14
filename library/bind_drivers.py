@@ -44,7 +44,7 @@ def _using_virtio(addr):
     raise Exception('Could not determine device type @ {}'.format(addr))
 
 
-def _enable_unsafe_noiommu_mode():
+def _enable_unsafe_vfio_noiommu_mode():
     _remove_vfio_pci()
     _remove_vfio()
 
@@ -74,32 +74,41 @@ def _remove_module(module):
             )
 
 
-def _bind_devices_to_vfio(pci_addresses):
-    if any(_using_virtio(addr) for addr in pci_addresses):
-        _enable_unsafe_noiommu_mode()
+def _bind_device_to_vfio(pci_address, driver):
+    if _using_virtio(pci_address):
+        _enable_unsafe_vfio_noiommu_mode()
+    _bind_device_to_driver(pci_address, driver)
 
-    for addr in pci_addresses:
-        rc, _, err = _exec_cmd(['driverctl', 'set-override', addr, 'vfio-pci'])
-        if rc:
-            raise Exception(
-                'Could not bind device to vfio-pci: {}'.format(err)
-            )
+
+def _bind_device_to_driver(pci_address, driver):
+    rc, _, err = _exec_cmd(['driverctl', 'set-override', pci_address, driver])
+    if rc:
+        raise Exception(
+            'Could not bind device to {}: {}'.format(driver, err)
+        )
 
 
 def main():
+    DPDK_DRIVERS = ('vfio-pci',)
+
     module = AnsibleModule(
         argument_spec=dict(
-            pci_addresses=dict(default=None, type='list', required=True)
+            device_map=dict(default=None, type='dict', required=True)
         )
     )
-
-    pci_addresses = module.params.get('pci_addresses')
+    device_map = module.params.get('device_map')
+    bind_function_map = {'vfio-pci': _bind_device_to_vfio}
     try:
-        _bind_devices_to_vfio(pci_addresses)
+        for pci_address, driver in device_map.viewitems():
+            bind_func = bind_function_map.get(driver, _bind_device_to_driver)
+            bind_func(pci_address, driver)
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
-    module.exit_json(changed=False)
+    module.exit_json(
+        start_ovs=any(driver in DPDK_DRIVERS
+                      for driver in device_map.viewvalues())
+    )
 
 
 if __name__ == "__main__":

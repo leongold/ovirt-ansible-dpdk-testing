@@ -1,8 +1,0 @@
-- hosts: lago-host-0
-  gather_facts: false
-  vars:
-    nics_addresses: ['0000:00:04.0']
-
-  roles:
-  - oVirt.configure_kernel
-
