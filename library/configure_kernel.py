@@ -143,8 +143,9 @@ def _get_kernel_args():
             l.startswith('args')][0]
 
 
-def _select_cpu_partitioning():
-    rc, _, err = _exec_cmd(['tuned-adm', 'profile', 'cpu-partitioning'])
+def _select_cpu_partitioning(cpu_list):
+    profile = 'cpu-partitioning' if cpu_list else 'default'
+    rc, _, err = _exec_cmd(['tuned-adm', 'profile', default])
     if rc != 0:
         raise SelectCpuPartitioningError(err)
 
@@ -185,7 +186,7 @@ def _configure_kernel(pci_addresses):
 
     added_hugepages = _add_hugepages(default_kernel)
     changed_isolated_cpus = _change_isolated_cpus(cpu_list)
-    _select_cpu_partitioning()
+    _select_cpu_partitioning(cpu_list)
     added_iommu = _add_iommu(default_kernel)
 
     return any([added_hugepages, changed_isolated_cpus, added_iommu])
