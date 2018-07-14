@@ -188,7 +188,7 @@ def _configure_kernel(pci_addresses):
     _select_cpu_partitioning()
     added_iommu = _add_iommu(default_kernel)
 
-    return any([added_hugepages, changed_isolated_cpus, added_iommu]):
+    return any([added_hugepages, changed_isolated_cpus, added_iommu])
 
 
 def main():
