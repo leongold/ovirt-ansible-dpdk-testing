@@ -136,8 +136,6 @@ def _remove_override(pci_address):
 
 
 def main():
-    DPDK_DRIVERS = ('vfio-pci',)
-
     module = AnsibleModule(
         argument_spec=dict(
             pci_drivers=dict(default=None, type='dict', required=True)
