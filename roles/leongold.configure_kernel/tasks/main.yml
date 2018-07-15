@@ -13,7 +13,7 @@
 
 - name: configure kernel
   configure_kernel:
-    device_map: "{{ device_map }}"
+    pci_drivers: "{{ pci_drivers }}"
   register: configure_kernel
 
 - name: restart server

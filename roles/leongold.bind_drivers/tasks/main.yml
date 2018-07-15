@@ -1,3 +1,3 @@
 - name: bind devices to drivers
   bind_drivers:
-    device_map: "{{ device_map }}"
+    pci_drivers: "{{ pci_drivers }}"

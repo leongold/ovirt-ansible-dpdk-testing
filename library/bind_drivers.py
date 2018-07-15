@@ -91,8 +91,19 @@ def _bind_device_to_vfio(pci_address, driver):
 def _bind_device_to_driver(pci_address, driver):
     rc, _, err = _exec_cmd(['driverctl', 'set-override', pci_address, driver])
     if rc:
+        raise Exception('Could not bind device {} to {}: {}'.format(
+            pci_address, driver, err
+            )
+        )
+
+
+def _remove_override(pci_address):
+    rc, _, err = _exec_cmd(['driverctl', 'unset-override', pci_address)
+    if rc:
         raise Exception(
-            'Could not bind device to {}: {}'.format(driver, err)
+            'Could not remove driver override of device {}: {}'.format(
+                pci_address, err
+            )
         )
 
 
@@ -101,20 +112,23 @@ def main():
 
     module = AnsibleModule(
         argument_spec=dict(
-            device_map=dict(default=None, type='dict', required=True)
+            pci_drivers=dict(default=None, type='dict', required=True)
         )
     )
-    device_map = module.params.get('device_map')
+    pci_drivers = module.params.get('pci_drivers')
     bind_function_map = {'vfio-pci': _bind_device_to_vfio}
     changed = False
     try:
-        for pci_address, driver in device_map.viewitems():
+        for pci_address, driver in pci_drivers.viewitems():
             present_driver = _fetch_present_driver(pci_address)
             if present_driver != driver:
-                bind_func = bind_function_map.get(
-                    driver, _bind_device_to_driver
-                )
-                bind_func(pci_address, driver)
+                if driver == "":
+                    _remove_override(pci_address)
+                else:
+                    bind_func = bind_function_map.get(
+                        driver, _bind_device_to_driver
+                    )
+                    bind_func(pci_address, driver)
                 changed = True
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
@@ -122,7 +136,7 @@ def main():
     module.exit_json(
         changed=changed,
         start_ovs=any(driver in DPDK_DRIVERS
-                      for driver in device_map.viewvalues())
+                      for driver in pci_drivers.viewvalues())
     )
 
 
