@@ -16,6 +16,36 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 #
+DOCUMENTATION = '''
+---
+module: bind_drivers
+short_description: Binds network devices to network drivers.
+author: "Leon Goldberg (@leongold)"
+description:
+    - "Module to bind network devices to network drivers."
+options:
+    pci_drivers:
+        description:
+            - "Map of PCI address to device drivers. Empty string as values
+               sets kernel defaults."
+        required: true
+'''
+
+EXAMPLES = '''
+- name: bind pci devices to drivers
+  bind_drivers:
+    pci_drivers:
+      "0000:00:04.0": "vfio-pci"
+'''
+
+RETURN = '''
+changed:
+    description: Describes whether any alterations to devices were made.
+    returned: On success.
+    type: boolean
+    sample: true
+'''
+
 import subprocess
 import traceback
 
@@ -133,11 +163,7 @@ def main():
     except Exception as e:
         module.fail_json(msg=str(e), exception=traceback.format_exc())
 
-    module.exit_json(
-        changed=changed,
-        start_ovs=any(driver in DPDK_DRIVERS
-                      for driver in pci_drivers.viewvalues())
-    )
+    module.exit_json(changed=changed)
 
 
 if __name__ == "__main__":

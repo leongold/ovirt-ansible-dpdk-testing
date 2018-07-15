@@ -8,6 +8,7 @@
   - dpdk
   - dpdk-tools
   - driverctl
+  - grubby
   - tuned-profiles-cpu-partitioning
   - openvswitch
 

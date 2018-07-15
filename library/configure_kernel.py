@@ -16,6 +16,35 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 #
+DOCUMENTATION = '''
+---
+short_description: Configures the kernel to be DPDK compatible.
+author: "Leon Goldberg (@leongold)"
+description:
+    - "Module to configure the kernel to be DPDK compatible."
+options:
+    pci_drivers:
+        description:
+            - "Map of PCI address to device drivers. DPDK compatible
+               devices\drivers has their CPU's isolated."
+        required: true
+'''
+
+EXAMPLES = '''
+- name: configure kernel
+  configure_kernel:
+    pci_drivers:
+      "0000:00:04.0": "vfio-pci"
+'''
+
+RETURN = '''
+changed:
+    description: Describes whether any alterations to the kernel were made.
+    returned: On success.
+    type: boolean
+    sample: true
+'''
+
 import os
 import subprocess
 import traceback
@@ -173,9 +202,7 @@ def _using_virtio(addr):
     for device in devices:
         short_addr, info = device.split(' ', 1)
         if addr.split(':', 1)[1] == short_addr:
-            if 'Virtio' in info:
-                return True
-            return False
+            return 'Virtio' in info
 
     raise Exception('Could not determine device type @ {}'.format(addr))
 

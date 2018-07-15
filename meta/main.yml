@@ -1,6 +1,6 @@
 galaxy_info:
-  author: Leon Goldberg
-  description: ovirt-ansible-dpdk-setup testing
+  author: Irit Goihman, Leon Goldberg
+  description: Setup DPDK compatible NIC's to use DPDK via Open vSwitch.
   company: Red Hat, Inc.
 
   license: Apache License 2.0
