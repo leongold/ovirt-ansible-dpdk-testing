@@ -122,18 +122,16 @@ def _bind_device_to_driver(pci_address, driver):
     rc, _, err = _exec_cmd(['driverctl', 'set-override', pci_address, driver])
     if rc:
         raise Exception('Could not bind device {} to {}: {}'.format(
-            pci_address, driver, err
-            )
+            pci_address, driver, err)
         )
 
 
 def _remove_override(pci_address):
-    rc, _, err = _exec_cmd(['driverctl', 'unset-override', pci_address)
+    rc, _, err = _exec_cmd(['driverctl', 'unset-override', pci_address])
     if rc:
         raise Exception(
             'Could not remove driver override of device {}: {}'.format(
-                pci_address, err
-            )
+                pci_address, err)
         )
 
 
