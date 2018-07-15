@@ -16,7 +16,7 @@ Role Variables
 
 | Name                    | Default value         |                                                     |
 |-------------------------|-----------------------|-----------------------------------------------------|
-| pci_drivers             | {}                    | PCI address to driver mapping.                      |
+| pci_drivers             |                       | PCI address to driver mapping.                      |
 
 
 Dependencies
