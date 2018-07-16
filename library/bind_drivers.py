@@ -115,6 +115,15 @@ def _remove_module(module):
 def _bind_device_to_vfio(pci_address, driver):
     if _using_virtio(pci_address):
         _enable_unsafe_vfio_noiommu_mode()
+    else:
+        rc, _, _, = _exec_cmd(['modinfo', 'vfio-pci'])
+        if rc:
+            rc, _, err = _exec_cmd(['modprobe', 'vfio-pci'])
+            if rc:
+                raise Exception(
+                    'Could not load vfio-pci module: {}'.format(err)
+                )
+
     _bind_device_to_driver(pci_address, driver)
 
 
