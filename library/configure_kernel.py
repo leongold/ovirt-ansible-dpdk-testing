@@ -134,16 +134,20 @@ def _change_isolated_cpus(cpu_list):
     VARIABLES_FILE = '/etc/tuned/cpu-partitioning-variables.conf'
 
     changed = False
+    has_line = False
     new_lines = []
     with open(VARIABLES_FILE) as f:
         lines = f.readlines()
         for line in lines:
             if line.startswith('isolated_cores'):
+                has_line = True
                 required_line = 'isolated_cores={}'.format(cpu_list)
                 if line != required_line:
                     line = required_line
                     changed = True
             new_lines.append(line)
+    if not has_line:
+        new_lines.append('isolated_cores={}'.format(cpu_list))
 
     with open(VARIABLES_FILE, 'w') as f:
         f.writelines(new_lines)
