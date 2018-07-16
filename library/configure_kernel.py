@@ -140,7 +140,7 @@ def _change_isolated_cpus(cpu_list):
         lines = f.readlines()
         for line in lines:
             if line.startswith('isolated_cores'):
-                has_isolated_cores  = True
+                has_isolated_cores = True
                 required_line = 'isolated_cores={}'.format(cpu_list)
                 if line != required_line:
                     line = required_line
